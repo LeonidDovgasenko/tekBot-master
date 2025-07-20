@@ -7,6 +7,7 @@ from sqlalchemy import or_, and_
 from datetime import datetime
 from database.models import UserTestProgress  # Импорт модели прогресса
 from database.content_session import ContentSessionLocal  # Импорт сессии БД
+from handlers.feedback_handler import request_feedback_text, show_feedbacks, ask_feedback
 
 def register_menu_handlers(bot):
     def handle_training_search_input(message):
@@ -58,10 +59,46 @@ def register_menu_handlers(bot):
             bot.send_message(message.chat.id, "⚠ Ошибка при выполнении поиска")
         finally:
             db.close()
+            
+    @bot.callback_query_handler(func=lambda call: call.data == "give_feedback")
+    def handle_give_feedback(call):
+        request_feedback_text(bot, call)
+
+    @bot.callback_query_handler(func=lambda call: call.data == "view_feedbacks")
+    def handle_view_feedbacks(call):
+        show_feedbacks(bot, call)
+
+    @bot.callback_query_handler(func=lambda call: call.data == "take_quiz")
+    def handle_take_quiz(call):
+        bot.send_message(call.message.chat.id, "📝 Опрос находится в разработке")
+        ask_feedback(bot, call.message)  # Вернуться в меню обратной связи
+        
+        
+    @bot.callback_query_handler(func=lambda call: call.data == "edit_section:training_tests")
+    def handle_edit_tests(call):
+        print(f"Обработчик редактирования тестов вызван: {call.data}")
+        from handlers.tests_handler import show_edit_tests_menu
+        show_edit_tests_menu(bot, call.message, call.from_user.id)
+        bot.answer_callback_query(call.id)  # Важно: подтверждаем обработку callback
+    
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("edit_test:"))
+    def handle_edit_test(call):
+        test_id = int(call.data.split(":")[1])
+        print(f"Редактирование теста ID: {test_id}")
+        # Реализуйте логику редактирования теста
+        bot.send_message(call.message.chat.id, f"Редактирование теста ID: {test_id}")
+
+    @bot.callback_query_handler(func=lambda call: call.data == "add_new_test")
+    def handle_add_new_test(call):
+        print("Добавление нового теста")
+        # Реализуйте логику добавления нового теста
+        bot.send_message(call.message.chat.id, "Добавление нового теста")
+        
     @bot.callback_query_handler(func=lambda call: call.data.startswith("test_start:"))
     def handle_test_start(call):
+        from database.session import SessionLocal
         test_id = int(call.data.split(":")[1])
-        db = ContentSessionLocal()
+        db = SessionLocal()
         
         # Отмечаем тест как пройденный
         progress = db.query(UserTestProgress).filter(
@@ -90,6 +127,7 @@ def register_menu_handlers(bot):
     def handle_callback(call):     
         # --- Подменю "Информация для сотрудников" ---
         # --- Главное меню ---
+        print(f"Обработка callback: {call.data}")  # Добавьте эту строку
         if call.data == "info":
             from handlers.info_handler import show_info_menu
             show_info_menu(bot, call.message)
@@ -149,14 +187,6 @@ def register_menu_handlers(bot):
         elif call.data == "training_categories":
             from handlers.training_materials import show_training_categories
             show_training_categories(bot, call)
-        
-        elif call.data == "training_section:training_tests":
-            from handlers.tests_handler import show_tests_menu
-            show_tests_menu(bot, call.message, call.from_user.id)
-
-        elif call.data == "edit_section:training_tests":
-            from handlers.tests_handler import show_edit_tests_menu
-            show_edit_tests_menu(bot, call.message, call.from_user.id)
     
         elif call.data == "training_search":
             bot.send_message(call.message.chat.id, "Введите начало названия материала для поиска:")
@@ -164,8 +194,12 @@ def register_menu_handlers(bot):
             
         elif call.data.startswith("training_section:"):
             section = call.data.split(":", 1)[1]
-            from handlers.training_materials import show_training_by_section
-            show_training_by_section(bot, call, section)
+            if section == "training_tests":
+                from handlers.tests_handler import show_tests_menu
+                show_tests_menu(bot, call.message, call.from_user.id)
+            else:
+                from handlers.training_materials import show_training_by_section
+                show_training_by_section(bot, call, section)
             
         elif call.data == "company_tours":
             from handlers.emp_info_handler import show_company_tours

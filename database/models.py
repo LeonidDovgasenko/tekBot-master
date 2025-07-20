@@ -4,25 +4,32 @@ from database.session import Base
 from database.content_session import ContentBase
 from datetime import datetime
 
+class Feedback(Base):
+    __tablename__ = 'feedbacks'
+    
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer)  # ID пользователя в Telegram
+    full_name = Column(String)  # Имя пользователя
+    feedback_text = Column(Text)  # Текст отзыва
+    created_at = Column(DateTime, default=datetime.now)  # Время создания
+    
 class Test(Base):
     __tablename__ = 'tests'
     
     id = Column(Integer, primary_key=True)
-    section = Column(String, nullable=False)  # Раздел, к которому привязан тест
-    title = Column(String, nullable=False)
-    url = Column(String, nullable=False)  # Ссылка на тест
+    section = Column(String)
+    title = Column(String)
+    url = Column(String)
     created_at = Column(DateTime, default=datetime.now)
 
 class UserTestProgress(Base):
     __tablename__ = 'user_test_progress'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, nullable=False)  # ID пользователя в Telegram
+    user_id = Column(Integer)
     test_id = Column(Integer, ForeignKey('tests.id'))
     completed = Column(Boolean, default=False)
     completed_at = Column(DateTime)
-    
-    test = relationship("Test", backref="progresses")
 
     
 class User(Base):
