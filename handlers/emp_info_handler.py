@@ -23,6 +23,7 @@ def show_employee_info_menu(bot, message):
     ]
     if is_admin:
         buttons.append(types.InlineKeyboardButton("⏰ Напоминания", callback_data="reminders"))
+        buttons.append(types.InlineKeyboardButton("📊 Отчетность", callback_data="analytics_menu"))  
     markup.add(*buttons)
 
     bot.send_message(

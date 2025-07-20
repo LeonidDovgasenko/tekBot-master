@@ -50,8 +50,9 @@ class User(Base):
     auth_token = Column(String(64), ForeignKey('about_users.auth_token'), unique=True)
     hash_pass = Column(String(128))
     is_authorized = Column(Boolean)
-
+    last_activity = Column(DateTime)
     user_info = relationship("User_info", foreign_keys=[auth_token], uselist=False)
+    
 
 
 class User_info(Base):

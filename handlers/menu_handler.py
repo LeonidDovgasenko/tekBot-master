@@ -16,6 +16,18 @@ from handlers.reminders_handler import (
     show_scheduled_reminders,
     request_reminder_to_delete
 )
+from handlers.analytics_handler import show_analytics_menu, generate_users_report, generate_feedback_report
+from handlers.analytics_handler import (
+    show_analytics_menu, 
+    generate_users_report, 
+    generate_feedback_report,
+    generate_reminders_report,
+    generate_tests_report,
+    generate_content_report,
+    create_excel_file  # Импортируем функцию создания Excel
+)
+from database.models import User  # Импортируем модель User
+
 
 def register_menu_handlers(bot):
     def handle_training_search_input(message):
@@ -67,6 +79,31 @@ def register_menu_handlers(bot):
             bot.send_message(message.chat.id, "⚠ Ошибка при выполнении поиска")
         finally:
             db.close()
+            
+    @bot.callback_query_handler(func=lambda call: call.data == "analytics_menu")
+    def handle_analytics_menu(call):
+        show_analytics_menu(bot, call.message)
+
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("report:"))
+    def handle_report_request(call):
+        report_type = call.data.split(":")[1]
+        
+        if report_type == "users":
+            report, excel_data = generate_users_report()
+            bot.send_message(call.message.chat.id, report)
+            
+            # Отправка Excel файла
+            excel_file, filename = create_excel_file(excel_data, "users_report.xlsx")
+            bot.send_document(call.message.chat.id, excel_file, visible_file_name=filename)
+            
+        elif report_type == "feedback":
+            report, excel_data = generate_feedback_report()
+            bot.send_message(call.message.chat.id, report)
+            
+            # Отправка Excel файла
+            excel_file, filename = create_excel_file(excel_data, "feedback_report.xlsx")
+            bot.send_document(call.message.chat.id, excel_file, visible_file_name=filename)
+            
     @bot.callback_query_handler(func=lambda call: call.data == "reminders")
     def handle_reminders(call):
         show_reminders_menu(bot, call.message)
@@ -178,6 +215,16 @@ def register_menu_handlers(bot):
     def handle_callback(call):     
         # --- Подменю "Информация для сотрудников" ---
         # --- Главное меню ---
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter(User.auth_token == str(call.from_user.id)).first()
+            if user:
+                user.last_activity = datetime.now()
+                db.commit()
+        except:
+            pass
+        finally:
+            db.close()
         print(f"Обработка callback: {call.data}")  # Добавьте эту строку
         if call.data == "info":
             from handlers.info_handler import show_info_menu
