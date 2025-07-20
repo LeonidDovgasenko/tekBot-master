@@ -7,7 +7,10 @@ import os
 
 def show_employee_info_menu(bot, message):
     markup = types.InlineKeyboardMarkup(row_width=1)
-
+    user_id = message.from_user.id
+    db = SessionLocal()
+    is_admin = db.query(Admin).filter(Admin.auth_token == str(user_id)).first() is not None
+    db.close()
     buttons = [
         types.InlineKeyboardButton("Обучающие материалы", callback_data="training_materials"),
         types.InlineKeyboardButton("Экскурсии по компании", callback_data="company_tours"),
@@ -18,7 +21,8 @@ def show_employee_info_menu(bot, message):
         types.InlineKeyboardButton("Оформление документов", callback_data="document_filling"),
         types.InlineKeyboardButton("⬅ Назад", callback_data="back_to_main")
     ]
-
+    if is_admin:
+        buttons.append(types.InlineKeyboardButton("⏰ Напоминания", callback_data="reminders"))
     markup.add(*buttons)
 
     bot.send_message(

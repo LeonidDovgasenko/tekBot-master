@@ -3,7 +3,7 @@ import secrets
 import hashlib
 from database.models import User, User_info, Admin
 from database.session import SessionLocal, engine, Base
-
+from database.models import Reminder
 
 # 🔧 Создаем таблицы, если их ещё нет (включая Admin)
 Base.metadata.create_all(bind=engine)

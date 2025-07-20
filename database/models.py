@@ -1,9 +1,20 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text, DateTime, Interval
 from sqlalchemy.orm import relationship
 from database.session import Base
 from database.content_session import ContentBase
 from datetime import datetime
 
+class Reminder(Base):
+    __tablename__ = 'reminders'
+    
+    id = Column(Integer, primary_key=True)
+    text = Column(Text, nullable=False)  # Текст напоминания
+    is_recurring = Column(Boolean, default=False)  # Повторяющееся ли напоминание
+    interval = Column(String)  # Интервал для повторяющихся напоминаний (daily, weekly и т.д.)
+    next_send = Column(DateTime)  # Следующее время отправки
+    start_time = Column(DateTime, default=datetime.now)  # Время создания напоминания
+    is_active = Column(Boolean, default=True)  # Активно ли напоминание
+    
 class Feedback(Base):
     __tablename__ = 'feedbacks'
     

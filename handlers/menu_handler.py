@@ -8,6 +8,14 @@ from datetime import datetime
 from database.models import UserTestProgress  # Импорт модели прогресса
 from database.content_session import ContentSessionLocal  # Импорт сессии БД
 from handlers.feedback_handler import request_feedback_text, show_feedbacks, ask_feedback
+from handlers.reminders_handler import (
+    save_reminder,
+    request_reminder_schedule,
+    show_reminders_menu,
+    request_reminder_text,
+    show_scheduled_reminders,
+    request_reminder_to_delete
+)
 
 def register_menu_handlers(bot):
     def handle_training_search_input(message):
@@ -59,6 +67,49 @@ def register_menu_handlers(bot):
             bot.send_message(message.chat.id, "⚠ Ошибка при выполнении поиска")
         finally:
             db.close()
+    @bot.callback_query_handler(func=lambda call: call.data == "reminders")
+    def handle_reminders(call):
+        show_reminders_menu(bot, call.message)
+
+    @bot.callback_query_handler(func=lambda call: call.data == "send_reminder")
+    def handle_send_reminder(call):
+        request_reminder_text(bot, call)
+
+    @bot.callback_query_handler(func=lambda call: call.data == "configure_reminders")
+    def handle_configure_reminders(call):
+        show_scheduled_reminders(bot, call)
+
+    @bot.callback_query_handler(func=lambda call: call.data == "delete_reminder_menu")
+    def handle_delete_reminder_menu(call):
+        request_reminder_to_delete(bot, call)
+
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("reminder_type:"))
+    def handle_reminder_type(call):
+        parts = call.data.split(":", 2)
+        r_type = parts[1]
+        text = parts[2]
+        
+        if r_type == "instant":
+            # Сохраняем и отправляем немедленно
+            if save_reminder(bot, text, is_instant=True):
+                bot.send_message(call.message.chat.id, "✅ Напоминание отправлено всем пользователям!")
+            else:
+                bot.send_message(call.message.chat.id, "⚠️ Ошибка при отправке напоминания")
+        else:
+            # Запрашиваем интервал для повторяющихся напоминаний
+            request_reminder_schedule(bot, call, text)
+
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("reminder_interval:"))
+    def handle_reminder_interval(call):
+        parts = call.data.split(":", 2)
+        interval = parts[1]
+        text = parts[2]
+        
+        # Сохраняем напоминание с интервалом
+        if save_reminder(bot, text, interval=interval):
+            bot.send_message(call.message.chat.id, f"✅ Повторяющееся напоминание настроено ({interval})!")
+        else:
+            bot.send_message(call.message.chat.id, "⚠️ Ошибка при настройке напоминания")
             
     @bot.callback_query_handler(func=lambda call: call.data == "give_feedback")
     def handle_give_feedback(call):
