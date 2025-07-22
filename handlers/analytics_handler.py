@@ -84,11 +84,13 @@ def generate_tests_report():
 
 def generate_content_report():
     """Сгенерировать отчет по материалам"""
-    db = SessionLocal()
+    from database.content_session import ContentSessionLocal
+    db = ContentSessionLocal()
     try:
-        from database.models import Test 
+        from database.models import Content, ContentFile
+
         total_content = db.query(Content).count()
-        total_files = db.query(ContentFile).count()
+        total_files   = db.query(ContentFile).count()
         
         report = (
             "📚 ОТЧЕТ ПО МАТЕРИАЛАМ\n\n"
@@ -154,10 +156,11 @@ def generate_users_report():
         users_data = []
         users = db.query(User).all()
         for user in users:
+            info = user.user_info  # связанный User_info
             users_data.append({
                 "ID": user.id,
-                "Имя": user.full_name,
-                "Email": user.mail,
+                "Имя": info.full_name if info else "N/A",
+                "Email": info.mail if info else "N/A",
                 "Дата регистрации": user.created_at.strftime('%Y-%m-%d'),
                 "Последняя активность": user.last_activity.strftime('%Y-%m-%d %H:%M') if user.last_activity else "N/A"
             })

@@ -63,6 +63,8 @@ class User(Base):
     is_authorized = Column(Boolean)
     last_activity = Column(DateTime)
     user_info = relationship("User_info", foreign_keys=[auth_token], uselist=False)
+    created_at = Column(DateTime, default=datetime.now)        
+    last_activity = Column(DateTime, default=datetime.now)  
 
 
     

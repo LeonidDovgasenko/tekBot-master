@@ -103,6 +103,27 @@ def register_menu_handlers(bot):
             # Отправка Excel файла
             excel_file, filename = create_excel_file(excel_data, "feedback_report.xlsx")
             bot.send_document(call.message.chat.id, excel_file, visible_file_name=filename)
+        
+        elif report_type == "reminders":
+            # генерируем и отправляем отчёт по напоминаниям
+            report, data = generate_reminders_report()
+            bot.send_message(call.message.chat.id, report)
+
+            # создаём Excel и шлём файл
+            excel_file, filename = create_excel_file(data, "reminders_report.xlsx")
+            bot.send_document(call.message.chat.id, excel_file, visible_file_name=filename)
+            
+        elif report_type == "tests":
+            report, excel_data = generate_tests_report()
+            bot.send_message(call.message.chat.id, report)
+            excel_file, filename = create_excel_file(excel_data, "tests_report.xlsx")
+            bot.send_document(call.message.chat.id, excel_file, visible_file_name=filename)
+
+        elif report_type == "content":
+            report, excel_data = generate_content_report()
+            bot.send_message(call.message.chat.id, report)
+            excel_file, filename = create_excel_file(excel_data, "content_report.xlsx")
+            bot.send_document(call.message.chat.id, excel_file, visible_file_name=filename)
             
     @bot.callback_query_handler(func=lambda call: call.data == "reminders")
     def handle_reminders(call):
@@ -259,6 +280,18 @@ def register_menu_handlers(bot):
         
     @bot.callback_query_handler(func=lambda call: True)
     def handle_callback(call):     
+        # —————— Обновление last_activity ——————
+        from datetime import datetime
+        from database.models import User
+        from database.session import SessionLocal
+
+        db = SessionLocal()
+        user = db.query(User).filter(User.auth_token == str(call.from_user.id)).first()
+        if user:
+            user.last_activity = datetime.now()
+            db.commit()
+        db.close()
+        # ————————————————————————————————
         # --- Подменю "Информация для сотрудников" ---
         # --- Главное меню ---
         db = SessionLocal()
