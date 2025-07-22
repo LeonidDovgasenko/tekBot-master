@@ -52,7 +52,7 @@ def show_reminders_menu(bot, message):
     buttons = [
         types.InlineKeyboardButton("🔔 Отправить напоминание", callback_data="send_reminder"),
         types.InlineKeyboardButton("⏰ Настроить напоминания", callback_data="configure_reminders"),
-        types.InlineKeyboardButton("⬅ Назад", callback_data="employee_info")
+        types.InlineKeyboardButton("⬅ Назад", callback_data="training")
     ]
     
     markup.add(*buttons)

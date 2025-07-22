@@ -32,6 +32,7 @@ def show_employee_info_menu(bot, message):
         "Выберите нужный раздел.",
         reply_markup=markup
     )
+    
 def show_section(bot, message, section_name):
     section_info = SECTIONS.get(section_name, {})
     title = section_info.get("title", section_name.capitalize())

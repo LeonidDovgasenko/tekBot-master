@@ -28,7 +28,7 @@ def show_training_menu(bot, message):
     markup.add(*buttons)
 
     # Кнопка назад — на отдельной строке
-    markup.add(types.InlineKeyboardButton("⬅ Назад", callback_data="back_to_main"))
+    markup.add(types.InlineKeyboardButton("⬅ Назад", callback_data="training"))
 
     bot.send_message(
         message.chat.id,

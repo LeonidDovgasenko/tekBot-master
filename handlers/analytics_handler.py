@@ -122,7 +122,7 @@ def show_analytics_menu(bot, message):
         types.InlineKeyboardButton("⏰ Отчет по напоминаниям", callback_data="report:reminders"),
         types.InlineKeyboardButton("📊 Отчет по тестам", callback_data="report:tests"),
         types.InlineKeyboardButton("📚 Отчет по материалам", callback_data="report:content"),
-        types.InlineKeyboardButton("⬅ Назад", callback_data="employee_info")
+        types.InlineKeyboardButton("⬅ Назад", callback_data="training")
     ]
     
     markup.add(*buttons)
