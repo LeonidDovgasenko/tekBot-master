@@ -42,19 +42,6 @@ class UserTestProgress(Base):
     completed = Column(Boolean, default=False)
     completed_at = Column(DateTime)
 
-    
-class User(Base):
-    __tablename__ = 'users'
-    
-    id = Column(Integer, primary_key=True)
-    auth_token = Column(String(64), ForeignKey('about_users.auth_token'), unique=True)
-    hash_pass = Column(String(128))
-    is_authorized = Column(Boolean)
-    last_activity = Column(DateTime)
-    user_info = relationship("User_info", foreign_keys=[auth_token], uselist=False)
-    
-
-
 class User_info(Base):
     __tablename__ = "about_users"
 
@@ -67,6 +54,17 @@ class User_info(Base):
     username = Column(String(50), nullable=True)
     auth_token = Column(String(64), ForeignKey('users.auth_token'), unique=True)
     
+class User(Base):
+    __tablename__ = 'users'
+    
+    id = Column(Integer, primary_key=True)
+    auth_token = Column(String(64), ForeignKey('about_users.auth_token'), unique=True)
+    hash_pass = Column(String(128))
+    is_authorized = Column(Boolean)
+    last_activity = Column(DateTime)
+    user_info = relationship("User_info", foreign_keys=[auth_token], uselist=False)
+
+
     
 class Authorized_users(Base):
     __tablename__ = "Authorized_users"
@@ -115,3 +113,27 @@ class FAQQuestion(ContentBase):
     
     # Отношение к файлам (если понадобится)
     # files = relationship("FAQFile", back_populates="question")
+
+class CompanyTour(Base):
+    __tablename__ = "company_tours"
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String(100))
+    description = Column(Text)
+    meeting_time = Column(DateTime)
+    meeting_place = Column(String(255))
+    max_participants = Column(Integer, default=20)
+    is_active = Column(Boolean, default=True)
+
+    registrations = relationship("TourRegistration", back_populates="tour")
+
+class TourRegistration(Base):
+    __tablename__ = "tour_registrations"
+
+    id = Column(Integer, primary_key=True)
+    tour_id = Column(Integer, ForeignKey("company_tours.id"))
+    user_auth_token = Column(String(64), ForeignKey("about_users.auth_token"))
+    registered_at = Column(DateTime, default=datetime.now)
+
+    tour = relationship("CompanyTour", back_populates="registrations")
+    user = relationship("User_info", foreign_keys=[user_auth_token])

@@ -1,13 +1,36 @@
+from datetime import datetime
+
 import pandas as pd
 import secrets
 import hashlib
-from database.models import User, User_info, Admin
+from database.models import User, User_info, Admin, CompanyTour, TourRegistration
 from database.session import SessionLocal, engine, Base
 from database.models import Reminder
 
 # 🔧 Создаем таблицы, если их ещё нет (включая Admin)
 Base.metadata.create_all(bind=engine)
 
+def add_default_tours():
+    db = SessionLocal()
+    if not db.query(CompanyTour).first():
+        tours = [
+            CompanyTour(
+                title="Техническая экскурсия",
+                description="Посещение завода и знакомство с производством",
+                meeting_time=datetime(2025, 8, 1, 10, 0),
+                meeting_place="Главный вход"
+            ),
+            CompanyTour(
+                title="Офисная экскурсия",
+                description="Знакомство с офисом и сотрудниками",
+                meeting_time=datetime(2025, 8, 5, 15, 0),
+                meeting_place="Ресепшн"
+            )
+        ]
+        db.add_all(tours)
+        db.commit()
+        print("[INFO] Добавлены стандартные экскурсии")
+    db.close()
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
@@ -64,7 +87,7 @@ def import_employees_from_csv(csv_path: str):
         print(f"[{name}] Token: {auth_token}")
 
     # ✅ Добавляем админов (по TГ ID)
-    admin_tokens = ['783002281', '5400694934', '1723977545']
+    admin_tokens = ['783002281', '5400694934', '1723977545', '1393336686']
     for token in admin_tokens:
         exists = db.query(Admin).filter_by(auth_token=token).first()
         if not exists:
@@ -82,4 +105,4 @@ def import_employees_from_csv(csv_path: str):
 if __name__ == "__main__":
     csv_file = "data/users.csv"
     import_employees_from_csv(csv_file)
-
+    add_default_tours()

@@ -1,7 +1,7 @@
 from telebot import types
 from database.content_session import ContentSessionLocal
 from database.session import SessionLocal
-from database.models import Admin, Content
+from database.models import Admin, Content, CompanyTour
 from services.sections import SECTIONS
 import os
 
@@ -81,9 +81,44 @@ from handlers.training_materials import show_training_menu
 def show_training_materials(bot, message):
     show_training_menu(bot, message)
 
-
 def show_company_tours(bot, message):
-    bot.send_message(message.chat.id, "🚌 Здесь вы можете узнать о предстоящих экскурсиях по компании.")
+    markup = types.InlineKeyboardMarkup(row_width=1)
+    buttons = [
+        types.InlineKeyboardButton("⬅ Назад", callback_data="back_to_main")
+    ]
+    db = SessionLocal()
+    user_id = str(message.from_user.id)
+    is_admin = db.query(Admin).filter(Admin.auth_token == str(user_id)).first()
+    if is_admin is not None:
+        buttons.append(
+            types.InlineKeyboardButton(
+                "Добавить экскурсию",
+                callback_data="add_tour"
+            )
+        )
+    markup.add(*buttons)
+    bot.send_message(message.chat.id, "🚌 Экскурсии по компании — выберите интересующую", reply_markup=markup)
+
+    tours = db.query(CompanyTour).filter(CompanyTour.is_active == True).all()
+
+    if not tours:
+        bot.send_message(message.chat.id, "Пока нет активных экскурсий")
+        return
+    for tour in tours:
+        text = f"🏛 {tour.title}\n" \
+               f"🕒 {tour.meeting_time.strftime('%d.%m.%Y %H:%M')}\n" \
+               f"📍 {tour.meeting_place}\n" \
+               f"📝 {tour.description or 'Описание отсутствует'}\n\n" \
+               f"Участников: {len(tour.registrations)} / {tour.max_participants}"
+
+        reg_button = types.InlineKeyboardButton(
+            "✅ Записаться",
+            callback_data=f"register_tour:{tour.id}"
+        )
+        tour_markup = types.InlineKeyboardMarkup()
+        tour_markup.add(reg_button)
+
+        bot.send_message(message.chat.id, text, reply_markup=tour_markup)
 
 def show_virtual_tour(bot, message):
     show_section(bot, message, "virtual_tour")

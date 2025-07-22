@@ -210,6 +210,52 @@ def register_menu_handlers(bot):
         db.close()
         
         bot.answer_callback_query(call.id, "Тест отмечен как пройденный!")
+
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("register_tour:"))
+    def handle_register_tour(call):
+        from database.session import SessionLocal
+        from database.models import TourRegistration, CompanyTour, User_info
+        from datetime import datetime
+
+        tour_id = int(call.data.split(":")[1])
+        user_auth_token = str(call.from_user.id)
+
+        db = SessionLocal()
+
+        # Проверяем, зарегистрирован ли уже
+        existing = db.query(TourRegistration).filter_by(
+            tour_id=tour_id,
+            user_auth_token=user_auth_token
+        ).first()
+
+        if existing:
+            bot.answer_callback_query(call.id, "Вы уже зарегистрированы на эту экскурсию.")
+            db.close()
+            return
+
+        # Проверяем наличие мест
+        tour = db.query(CompanyTour).filter_by(id=tour_id).first()
+        if not tour:
+            bot.answer_callback_query(call.id, "Экскурсия не найдена.")
+            db.close()
+            return
+
+        if len(tour.registrations) >= tour.max_participants:
+            bot.answer_callback_query(call.id, "Мест больше нет 😢")
+            db.close()
+            return
+
+        # Добавляем регистрацию
+        registration = TourRegistration(
+            tour_id=tour_id,
+            user_auth_token=user_auth_token,
+            registered_at=datetime.now()
+        )
+        db.add(registration)
+        db.commit()
+        db.close()
+
+        bot.answer_callback_query(call.id, "Вы успешно записались на экскурсию! 🎉")
         
     @bot.callback_query_handler(func=lambda call: True)
     def handle_callback(call):     
@@ -273,7 +319,8 @@ def register_menu_handlers(bot):
                 bot.send_message(call.message.chat.id, "Информация пока недоступна.")
             db.close()
 
-    
+
+
         elif call.data == "training":
             from handlers.emp_info_handler import show_employee_info_menu
             show_employee_info_menu(bot, call.message)
@@ -302,6 +349,7 @@ def register_menu_handlers(bot):
         elif call.data == "company_tours":
             from handlers.emp_info_handler import show_company_tours
             show_company_tours(bot, call.message)
+
 
         elif call.data == "virtual_tour":
             from handlers.emp_info_handler import show_virtual_tour

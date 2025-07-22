@@ -2,7 +2,8 @@ from telebot import types
 from services.content_service import update_content, add_file_to_content, delete_content_file, get_content_files
 import os
 from services.sections import SECTIONS
-from database.models import Test, UserTestProgress, Admin
+from database.models import Test, UserTestProgress, Admin, User_info
+from database.models import CompanyTour
 from database.content_session import ContentSessionLocal
 from database.session import SessionLocal
 from sqlalchemy import func

@@ -15,9 +15,11 @@ from handlers.reminders_handler import (
 )
 from handlers.start_handler import register_start_handler
 from handlers.menu_handler import register_menu_handlers
+
 from handlers.analytics_handler import generate_users_report, generate_feedback_report, create_excel_file
 from database.models import Admin
-
+from handlers.tour_handler import register_tour_handlers
+from handlers.admin_tour_handler import register_admin_tour_handlers
 # Если у вас нет admin_content_handler, закомментируйте или удалите эту строку
 # from handlers.admin_content_handler import register_admin_content_callback_handlers
 
@@ -111,7 +113,10 @@ def reminder_scheduler(bot_instance):
 if __name__ == "__main__":
     # Регистрация обработчиков
     register_start_handler(bot)
+    register_admin_tour_handlers(bot)
     register_menu_handlers(bot)
+    register_tour_handlers(bot)
+
     
     # Если у вас есть этот обработчик, раскомментируйте
     # register_admin_content_callback_handlers(bot)
