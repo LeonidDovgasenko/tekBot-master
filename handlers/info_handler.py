@@ -14,8 +14,8 @@ def show_info_menu(bot, message):
     ]
     db = SessionLocal()
     if (db.query(Admin).filter(message.from_user.id == Admin.auth_token)):
-        buttons.append(types.InlineKeyboardButton(f"Изменить «{buttons[0].text}»", callback_data='edit_section:history'))
-        buttons.append(types.InlineKeyboardButton(f"Изменить «{buttons[1].text}»", callback_data='edit_section:values'))
+        buttons.append(types.InlineKeyboardButton(f"Изменить «{buttons[0].text}»", callback_data='edit_section:history:info'))
+        buttons.append(types.InlineKeyboardButton(f"Изменить «{buttons[1].text}»", callback_data='edit_section:values:info'))
 
     markup.add(*buttons)
 

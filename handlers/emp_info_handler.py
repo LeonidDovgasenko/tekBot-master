@@ -49,7 +49,7 @@ def show_section(bot, message, section_name):
         buttons.append(
             types.InlineKeyboardButton(
                 f"Изменить «{title}»",
-                callback_data=f"edit_section:{section_name}"
+                callback_data=f"edit_section:{section_name}:training"
             )
         )
     markup.add(*buttons)

@@ -2,7 +2,9 @@ from telebot import types
 import hashlib
 from database.models import User, User_info, Authorized_users, Admin
 from database.session import SessionLocal
-
+from database.content_session import ContentSessionLocal
+from database.models import Admin, Content
+from services.sections import SECTIONS
 
 def show_main_menu(bot, message):
     markup = types.InlineKeyboardMarkup(row_width=1)
@@ -23,6 +25,30 @@ def show_main_menu(bot, message):
         "Выберите интересующий раздел:",
         reply_markup=markup
     )
+
+def greetings(bot, message):
+    section = 'greetings'
+    db = SessionLocal()
+    markup = None
+    if (db.query(Admin).filter(message.from_user.id == Admin.auth_token)):
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        markup.add(types.InlineKeyboardButton(f"Изменить текст", callback_data=f'edit_section:{section}:greetings'))
+    db = ContentSessionLocal()
+    try:
+        content = db.query(Content).filter(Content.section == section).first()
+        if content:
+            bot.send_message(message.chat.id, f"📌 {content.text}", reply_markup=markup)
+        elif markup is not None:
+            db.add(Content(
+                section=section,
+                title=SECTIONS[section]['title'],
+                text=SECTIONS[section]['description']
+            ))
+            db.commit()
+            content = db.query(Content).filter(Content.section == section).first()
+            bot.send_message(message.chat.id, f"📌 {content.text}", reply_markup=markup)
+    finally:
+        db.close()
 
 # --- Регистрация обработчиков ---
 def register_start_handler(bot):
@@ -78,11 +104,12 @@ def register_start_handler(bot):
             bot.delete_message(message.chat.id, sent.message_id)
             bot.delete_message(message.chat.id, message.message_id)
             bot.send_message(message.chat.id, f"Вы успешно авторизованы, {user_info.full_name}!")
-
+            greetings(bot, message)
         else:
             bot.delete_message(message.chat.id, sent.message_id)
             bot.delete_message(message.chat.id, message.message_id)
             bot.send_message(message.chat.id, f"Вы успешно авторизованы, {user.user_info.full_name}!")
+            greetings(bot, message)
         db.close()
 
     
@@ -115,16 +142,10 @@ def register_start_handler(bot):
     def show_menu(message):
         show_main_menu(bot, message)
         
-    def greetings(message):
-        bot.send_message(
-            message.chat.id,
-            "'Краткое описание основных функций бота'"
-        )
-        bot.send_message(
-            message.chat.id,
-            "Инструкция по дальнейшему взаимодействию (например, \"Чтобы получить информацию о компании, нажмите кнопку 'Информация'\")."
-        )
-    
+    @bot.message_handler(commands=["greetings"]) 
+    def show_greeting(message):
+        greetings(bot, message)
+
     @bot.message_handler(commands=['id'])
     def get_id(message):
         bot.send_message(message.chat.id, f"Ваш ID: {message.from_user.id}")

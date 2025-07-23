@@ -183,7 +183,7 @@ def register_menu_handlers(bot):
         ask_feedback(bot, call.message)  # Вернуться в меню обратной связи
         
         
-    @bot.callback_query_handler(func=lambda call: call.data == "edit_section:training_tests")
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("edit_tests_section:"))
     def handle_edit_tests(call):
         print(f"Обработчик редактирования тестов вызван: {call.data}")
         from handlers.tests_handler import show_edit_tests_menu
@@ -193,13 +193,13 @@ def register_menu_handlers(bot):
     @bot.callback_query_handler(func=lambda call: call.data.startswith("edit_test:"))
     def handle_edit_test(call):
         test_id = int(call.data.split(":")[1])
-        print(f"Редактирование теста ID: {test_id}")
+        #print(f"Редактирование теста ID: {test_id}")
         # Реализуйте логику редактирования теста
         bot.send_message(call.message.chat.id, f"Редактирование теста ID: {test_id}")
 
     @bot.callback_query_handler(func=lambda call: call.data == "add_new_test")
     def handle_add_new_test(call):
-        print("Добавление нового теста")
+        #print("Добавление нового теста")
         # Реализуйте логику добавления нового теста
         bot.send_message(call.message.chat.id, "Добавление нового теста")
         
@@ -304,7 +304,7 @@ def register_menu_handlers(bot):
             pass
         finally:
             db.close()
-        print(f"Обработка callback: {call.data}")  # Добавьте эту строку
+        #print(f"Обработка callback: {call.data}")  # Добавьте эту строку
         if call.data == "info":
             from handlers.info_handler import show_info_menu
             show_info_menu(bot, call.message)

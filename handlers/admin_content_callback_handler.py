@@ -19,7 +19,7 @@ def is_admin(user_id):
 def register_admin_content_callback_handlers(bot):
     @bot.callback_query_handler(func=lambda call: call.data.startswith("edit_section:"))
     def start_edit_section(call):
-        section = call.data.split(":", 1)[1]
+        _, section, back_path = call.data.split(":")
         info = SECTIONS.get(section)
 
         if not info:
@@ -35,7 +35,7 @@ def register_admin_content_callback_handlers(bot):
             buttons.append(types.InlineKeyboardButton("📎 Добавить файл", callback_data=f"add_file:{section}"))
             buttons.append(types.InlineKeyboardButton("🗂 Просмотреть файлы", callback_data=f"view_files:{section}"))
 
-        buttons.append(types.InlineKeyboardButton("⬅ Назад", callback_data="info"))
+        buttons.append(types.InlineKeyboardButton("⬅ Назад", callback_data=back_path))
         markup.add(*buttons)
 
         bot.send_message(

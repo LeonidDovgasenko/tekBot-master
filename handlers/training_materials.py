@@ -23,7 +23,7 @@ def show_training_menu(bot, message):
     # Тесты
     buttons.append(types.InlineKeyboardButton("📝 Тесты", callback_data="training_section:training_tests"))
     #if is_admin:
-    buttons.append(types.InlineKeyboardButton("✏️ Изменить «📝 Тесты»", callback_data="edit_section:training_tests"))
+    buttons.append(types.InlineKeyboardButton("✏️ Изменить «📝 Тесты»", callback_data="edit_tests_section:training_tests"))
 
     markup.add(*buttons)
 
@@ -58,6 +58,7 @@ user_search_state = {}
 def ask_training_search(bot, message):
     bot.send_message(message.chat.id, "🔍 Введите начало названия материала для поиска:")
     user_search_state[message.from_user.id] = True
+
 def show_training_categories(bot, call):
     # Создаём основное меню подкатегорий: PDF, Видео, Презентации
     markup = types.InlineKeyboardMarkup(row_width=1)
@@ -76,7 +77,7 @@ def show_training_categories(bot, call):
         for label, callback in categories:
             # training_materials_pdf → pdf
             subcategory = callback.replace("training_materials_", "")
-            markup.add(types.InlineKeyboardButton(f"✏️ Изменить «{label}»", callback_data=f"edit_section:{callback}"))
+            markup.add(types.InlineKeyboardButton(f"✏️ Изменить «{label}»", callback_data=f"edit_section:{callback}:training_materials"))
 
     markup.add(types.InlineKeyboardButton("⬅ Назад", callback_data="training"))
 
